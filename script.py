@@ -55,8 +55,7 @@ def course_from_line(line):
         name,
         scope,
         grade,
-        date
-    )
+        date)
 
 def number_from_grade(grade):
     match grade:
@@ -104,16 +103,16 @@ def processed_courses(courses, sort_by, include_ug):
 
 def print_courses_header(header, name_width, scope_width, grade_width, date_width):
     name = HEAD_START + bg.da_grey + ' ' + header[0].ljust(name_width, ' ') + bg.rs + HEAD_END
-    scope = HEAD_START + bg.li_grey + header[1].center(scope_width, ' ') + bg.rs + HEAD_END
+    scope = HEAD_START + bg.grey + header[1].center(scope_width, ' ') + bg.rs + HEAD_END
     grade = HEAD_START + bg.da_grey + header[2].center(grade_width, ' ') + bg.rs + HEAD_END
-    date = HEAD_START + bg.li_grey + header[3].center(date_width, ' ') + bg.rs + HEAD_END
+    date = HEAD_START + bg.grey + header[3].center(date_width, ' ') + bg.rs + HEAD_END
     print(name + scope + grade + date)
 
 def print_course(course, name_width, scope_width, grade_width, date_width):
     name = bg.da_grey + ' ' + course.name.ljust(name_width, ' ') + bg.rs
-    scope = bg.li_grey + (str(course.scope) + 'hp').center(scope_width, ' ') + bg.rs
+    scope = bg.grey + (str(course.scope) + 'hp').center(scope_width, ' ') + bg.rs
     grade = bg.da_grey + (str(course.grade) + '  ').center(grade_width, ' ') + bg.rs
-    date = bg.li_grey + course.date.strftime(DATE_FORMAT).center(date_width, ' ') + bg.rs
+    date = bg.grey + course.date.strftime(DATE_FORMAT).center(date_width, ' ') + bg.rs
     print(name + scope + grade + date)
 
 def print_courses(header, courses):
@@ -151,8 +150,8 @@ def print_stats(header, stats):
 
 def main():
     parser = ArgumentParser(
-                    prog='ladok-average',
-                    description='Calculate your grade average from Ladok.')
+        prog='ladok-average',
+        description='Calculate your grade average from Ladok.')
 
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('--filename', default='Intyg.pdf')
@@ -178,7 +177,6 @@ def main():
     average = round(average, 5)
 
     stats = []
-
     if verbose:
         print_courses(lines[courses_start_index - 1], courses)
         stats = stats + [Statistic('Number of courses', str(len(courses)))]
