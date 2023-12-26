@@ -7,12 +7,8 @@ from dataclasses import dataclass
 from sty import fg, bg, ef, rs
 
 DATE_FORMAT = '%Y-%m-%d'
-DARK_COL_START = bg.grey + fg.black
-DARK_COL_END = fg.rs + bg.rs
-LIGHT_COL_START = bg.li_grey + fg.black
-LIGHT_COL_END = fg.rs + bg.rs
-HEAD_START = ef.u + ef.bold 
-HEAD_END = rs.bold_dim + rs.u
+HEAD_START = ef.u + ef.bold + fg.da_black
+HEAD_END = rs.bold_dim + rs.u + fg.rs
 
 @dataclass()
 class Course:
@@ -20,6 +16,11 @@ class Course:
     scope: float
     grade: str
     date: date
+
+@dataclass()
+class Statistic:
+    name: str
+    value: str
 
 def is_date(word):
     try:
@@ -101,40 +102,53 @@ def processed_courses(courses, sort_by, include_ug):
         courses = list(filter(lambda course : course.grade != 'G', courses))
     return sorted_courses(courses, sort_by)
 
-def print_header(header, name_width, scope_width, grade_width, date_width):
-    name = HEAD_START + DARK_COL_START + header[0].ljust(name_width, ' ') + DARK_COL_END + HEAD_END
-    scope = HEAD_START + LIGHT_COL_START + header[1].center(scope_width, ' ') + LIGHT_COL_END + HEAD_END
-    grade = HEAD_START + DARK_COL_START + header[2].center(grade_width, ' ') + DARK_COL_END + HEAD_END
-    date = HEAD_START + LIGHT_COL_START + header[3].center(date_width, ' ') + LIGHT_COL_END + HEAD_END
+def print_courses_header(header, name_width, scope_width, grade_width, date_width):
+    name = HEAD_START + bg.da_grey + ' ' + header[0].ljust(name_width, ' ') + bg.rs + HEAD_END
+    scope = HEAD_START + bg.li_grey + header[1].center(scope_width, ' ') + bg.rs + HEAD_END
+    grade = HEAD_START + bg.da_grey + header[2].center(grade_width, ' ') + bg.rs + HEAD_END
+    date = HEAD_START + bg.li_grey + header[3].center(date_width, ' ') + bg.rs + HEAD_END
     print(name + scope + grade + date)
 
 def print_course(course, name_width, scope_width, grade_width, date_width):
-    name = DARK_COL_START + course.name.ljust(name_width, ' ') + DARK_COL_END
-    scope = LIGHT_COL_START + (str(course.scope) + 'hp').center(scope_width, ' ') + LIGHT_COL_END
-    grade = DARK_COL_START + (str(course.grade) + '  ').center(grade_width, ' ') + DARK_COL_END
-    date = LIGHT_COL_START + course.date.strftime(DATE_FORMAT).center(date_width, ' ') + LIGHT_COL_END
+    name = bg.da_grey + ' ' + course.name.ljust(name_width, ' ') + bg.rs
+    scope = bg.li_grey + (str(course.scope) + 'hp').center(scope_width, ' ') + bg.rs
+    grade = bg.da_grey + (str(course.grade) + '  ').center(grade_width, ' ') + bg.rs
+    date = bg.li_grey + course.date.strftime(DATE_FORMAT).center(date_width, ' ') + bg.rs
     print(name + scope + grade + date)
 
 def print_courses(header, courses):
     header = header.split(" ")
 
     name_width = max(list(map(lambda course : len(course.name), courses)))
-    name_width = max(name_width + 1, len(header[0]))
-    scope_width = max(5, len(header[1]) + 2)
-    grade_width = max(3, len(header[2]) + 2)
-    date_width = max(10, len(header[3]))
+    name_width = max(name_width, len(header[0])) + 1
+    scope_width = max(5, len(header[1])) + 2
+    grade_width = max(3, len(header[2])) + 2
+    date_width = max(10, len(header[3])) + 2
 
-    print_header(header, name_width, scope_width, grade_width, date_width)
+    print_courses_header(header, name_width, scope_width, grade_width, date_width)
     for course in courses:
         print_course(course, name_width, scope_width, grade_width, date_width)
 
-def print_average(average):
-    prefix_text = ' Your average:'
-    average_text = ' ' + str(average) + ' '
-    main_text = bg.blue + prefix_text + bg.li_blue + fg.black + average_text + fg.rs + bg.rs
-    empty_text = bg.blue + (' ' * len(prefix_text)) + bg.li_blue + (' ' * len(average_text)) + bg.rs
-    print(empty_text + '\n' + main_text + '\n' + empty_text)
- 
+def print_stats_header(header, name_width, value_width):
+    name = HEAD_START + bg.blue + ' ' + header[0].ljust(name_width, ' ') + bg.rs + HEAD_END
+    value = HEAD_START + bg.li_blue + header[1].center(value_width, ' ') + bg.rs + HEAD_END
+    print(fg.black + name + value + fg.rs)
+
+def print_stat(stat, name_width, value_width):
+    name = bg.blue + ' ' + stat.name.ljust(name_width, ' ') + bg.rs
+    value = bg.li_blue + stat.value.center(value_width, ' ') + bg.rs
+    print(name + value)
+
+def print_stats(header, stats):
+    name_width = max(list(map(lambda stat : len(stat.name), stats)))
+    name_width = max(name_width, len(header[0])) + 1
+    value_width = max(list(map(lambda stat : len(stat.value), stats)))
+    value_width = max(value_width, len(header[1])) + 2
+
+    print_stats_header(header, name_width, value_width)
+    for stat in stats:
+        print_stat(stat, name_width, value_width)
+
 def main():
     parser = ArgumentParser(
                     prog='ladok-average',
@@ -158,16 +172,23 @@ def main():
     courses = lines[courses_start_index:courses_end_index]
     courses = processed_courses(courses, sort_by, include_ug)
 
+    extent_sum = sum(list(map(lambda course : course.scope, courses)))
+    weight_sum = sum(list(map(lambda course : course.scope * number_from_grade(course.grade), courses)))
+    average = weight_sum / extent_sum
+    average = round(average, 5)
+
+    stats = []
+
     if verbose:
         print_courses(lines[courses_start_index - 1], courses)
+        stats = stats + [Statistic('Number of courses', str(len(courses)))]
+        stats = stats + [Statistic('Total scope', str(extent_sum) + 'hp')]
 
     if not ignore_average:
-        extent_sum = sum(list(map(lambda course : course.scope, courses)))
-        weight_sum = sum(list(map(lambda course : course.scope * number_from_grade(course.grade), courses)))
-        average = weight_sum / extent_sum
-        average = round(average, 5)
+        stats = stats + [Statistic('Average', str(average))]
 
-        print_average(average)
+    if stats:
+        print_stats(['Statistic', 'Value'], stats)
 
 if __name__ == '__main__':
     main()
