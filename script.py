@@ -7,6 +7,12 @@ from dataclasses import dataclass
 from sty import fg, bg, ef, rs
 
 DATE_FORMAT = '%Y-%m-%d'
+DARK_COL_START = bg.grey + fg.black
+DARK_COL_END = fg.rs + bg.rs
+LIGHT_COL_START = bg.li_grey + fg.black
+LIGHT_COL_END = fg.rs + bg.rs
+HEAD_START = ef.u + ef.bold 
+HEAD_END = rs.bold_dim + rs.u
 
 @dataclass()
 class Course:
@@ -62,11 +68,6 @@ def number_from_grade(grade):
         case _:
             raise ValueError
 
-def calculate_average(courses):
-    extent_sum = sum(list(map(lambda course : course.scope, courses)))
-    weight_sum = sum(list(map(lambda course : course.scope * number_from_grade(course.grade), courses)))
-    return weight_sum / extent_sum
-
 def get_course_indices(lines):
     is_swedish = lines[0].startswith('Resultatintyg')
     if is_swedish:
@@ -100,13 +101,6 @@ def processed_courses(courses, sort_by, include_ug):
         courses = list(filter(lambda course : course.grade != 'G', courses))
     return sorted_courses(courses, sort_by)
 
-DARK_COL_START = bg.grey + fg.black
-DARK_COL_END = fg.rs + bg.rs
-LIGHT_COL_START = bg.li_grey + fg.black
-LIGHT_COL_END = fg.rs + bg.rs
-HEAD_START = ef.u + ef.bold 
-HEAD_END = rs.bold_dim + rs.u
-
 def print_header(header, name_width, scope_width, grade_width, date_width):
     name = HEAD_START + DARK_COL_START + header[0].ljust(name_width, ' ') + DARK_COL_END + HEAD_END
     scope = HEAD_START + LIGHT_COL_START + header[1].center(scope_width, ' ') + LIGHT_COL_END + HEAD_END
@@ -133,7 +127,13 @@ def print_courses(header, courses):
     print_header(header, name_width, scope_width, grade_width, date_width)
     for course in courses:
         print_course(course, name_width, scope_width, grade_width, date_width)
-    print()
+
+def print_average(average):
+    prefix_text = ' Your average:'
+    average_text = ' ' + str(average) + ' '
+    main_text = bg.blue + prefix_text + bg.li_blue + fg.black + average_text + fg.rs + bg.rs
+    empty_text = bg.blue + (' ' * len(prefix_text)) + bg.li_blue + (' ' * len(average_text)) + bg.rs
+    print(empty_text + '\n' + main_text + '\n' + empty_text)
  
 def main():
     parser = ArgumentParser(
@@ -144,25 +144,30 @@ def main():
     parser.add_argument('--filename', default='Intyg.pdf')
     parser.add_argument('--sortby', choices=['name', 'grade', 'date'], default='date')
     parser.add_argument('--includeug', action='store_true')
+    parser.add_argument('--ignoreaverage', action='store_true')
 
     args = parser.parse_args()
     verbose = args.verbose
     file_name = args.filename
     sort_by = args.sortby
     include_ug = args.includeug
+    ignore_average = args.ignoreaverage
 
     lines = get_lines(file_name)
     courses_start_index, courses_end_index = get_course_indices(lines)
     courses = lines[courses_start_index:courses_end_index]
     courses = processed_courses(courses, sort_by, include_ug)
-   
-    average = calculate_average(courses)
-    average = round(average, 5)
 
     if verbose:
         print_courses(lines[courses_start_index - 1], courses)
 
-    print('Your average: ' + str(average))
+    if not ignore_average:
+        extent_sum = sum(list(map(lambda course : course.scope, courses)))
+        weight_sum = sum(list(map(lambda course : course.scope * number_from_grade(course.grade), courses)))
+        average = weight_sum / extent_sum
+        average = round(average, 5)
+
+        print_average(average)
 
 if __name__ == '__main__':
     main()
