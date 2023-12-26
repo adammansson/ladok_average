@@ -104,7 +104,7 @@ DARK_COL_START = bg.grey + fg.black
 DARK_COL_END = fg.rs + bg.rs
 LIGHT_COL_START = bg.li_grey + fg.black
 LIGHT_COL_END = fg.rs + bg.rs
-HEAD_START = ef.u + ef.bold + DARK_COL_START
+HEAD_START = ef.u + ef.bold 
 HEAD_END = rs.bold_dim + rs.u
 
 def print_header(header, name_width, scope_width, grade_width, date_width):
