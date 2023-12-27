@@ -71,7 +71,7 @@ def get_sorting_key(sort_by):
         case 'name':
             return lambda course : course['name']
         case 'grade':
-            return lambda course : -course['grade']
+            return lambda course : -int(course['grade'])
         case 'date':
             return lambda course : course['date']
         case _:
