@@ -25,8 +25,11 @@ git clone git@github.com:adammansson/ladok-average.git
 python script.py
 ```
 ```bash
-python script.py --filename=another_filename.pdf
+python script.py another_filename.pdf -v
 ```
 ```bash
-python script.py --verbose --includeug
+python script.py --includeug --ignoreaverage
+```
+```bash
+python script.py -o=Uttyg.txt
 ```
