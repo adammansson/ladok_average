@@ -6,25 +6,20 @@ class TerminalTable:
         self.header = header
         self.alignments = alignments
         self.sort_by = sort_by
-
         self.header_colors = header_colors
         self.even_colors = even_colors
         self.odd_colors = odd_colors
 
         self.rows = []
-        self.widths = {}
-        if 'center' in self.alignments:
-            self.padding = 2
-        else:
-            self.padding = 1
 
+        self.widths = {}
         for section in self.header:
-            self.widths[section.lower()] = len(section) + self.padding
+            self.widths[section.lower()] = len(section)
 
     def add_one(self, row):
         for section in self.header:
-            if len(row[section.lower()]) + self.padding > self.widths[section.lower()]:
-                self.widths[section.lower()] = len(str(row[section.lower()])) + self.padding
+            if len(row[section.lower()]) > self.widths[section.lower()]:
+                self.widths[section.lower()] = len(str(row[section.lower()]))
 
         self.rows.append(row)
 
@@ -40,9 +35,11 @@ class TerminalTable:
 
         match self.alignments[self.header.index(section)]:
             case 'left':
-                return string.ljust(width, ' ')
+                return string.ljust(width + 1, ' ')
             case 'center':
-                return string.center(width, ' ')
+                return string.center(width + 2, ' ')
+            case 'right':
+                return string.rjust(width + 1, ' ')
             case _:
                 raise ValueError
 
@@ -66,10 +63,10 @@ class TerminalTable:
             else:
                 stringified_row += self.odd_colors[0] + self.odd_colors[1]
 
-            # stringified_row += str(row[section.lower()]).ljust(self.widths[section.lower()], ' ')
             stringified_row += self.__aligned_string_from_section(str(row[section.lower()]), section)
             stringified_row += bg.rs + fg.rs
 
+        stringified_row += bg.rs + fg.rs
         return stringified_row
 
     def __stringified_rows(self):
@@ -77,7 +74,8 @@ class TerminalTable:
 
     def __str__(self):
         res = ''
-        res += self.__stringified_header() + '\n'
-        res += '\n'.join(self.__stringified_rows())
+        if self.rows:
+            res += self.__stringified_header() + '\n'
+            res += '\n'.join(self.__stringified_rows())
 
         return res

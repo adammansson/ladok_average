@@ -20,11 +20,17 @@ def find_date_index(words):
 
     raise ValueError
 
-def course_from_line(line):
+def course_from_line(line, is_swedish):
     words = line.split(' ')
     date_index = find_date_index(words)
     
     name = ' '.join(words[:(date_index - 2)])
+    if not is_swedish: # remove course code
+        if name[6] == ' ':
+            name = name[7:]
+        else:
+            name = name[6:]
+
     scope = words[date_index - 2]
     scope = scope.replace(',', '.')
     grade = words[date_index - 1]
@@ -84,16 +90,32 @@ def get_lines(file_name):
 
     return text.split('\n')
 
-def get_courses(lines, include_ug):
-    courses = list(map(course_from_line, lines))
+def get_courses(lines, is_swedish, include_ug):
+    courses_start_index, courses_end_index = get_course_indices(lines, is_swedish)
+    course_lines = lines[courses_start_index:courses_end_index]
+    courses = list(map(lambda line : course_from_line(line, is_swedish), course_lines))
     if not include_ug:
         courses = list(filter(lambda course : course['grade'] != 'G', courses))
+
     return courses
+
+def get_info(lines, is_swedish):
+    name_index = get_name_index(lines, is_swedish)
+    name_and_identity_number = lines[name_index].split(' ')
+    name = ' '.join(name_and_identity_number[:len(name_and_identity_number) - 1])
+    identity_number = name_and_identity_number[len(name_and_identity_number) - 1]
+
+    return [{
+        'info': name,
+    }, {
+        'info': identity_number,
+    }]
 
 def main():
     parser = ArgumentParser(
         prog='ladok-average',
-        description='Calculate your grade average from Ladok.')
+        description='Calculate your grade average from Ladok.',
+    )
 
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('--filename', default='Intyg.pdf')
@@ -110,43 +132,9 @@ def main():
 
     lines = get_lines(file_name)
     is_swedish = lines[0] == 'ResultatintygUtskriftsdatum'
+    courses = get_courses(lines, is_swedish, include_ug)
 
-    courses_start_index, courses_end_index = get_course_indices(lines, is_swedish)
-    course_lines = lines[courses_start_index:courses_end_index]
-    courses = get_courses(course_lines, include_ug)
-
-    name_index = get_name_index(lines, is_swedish)
-    name_and_identity_number = lines[name_index].split(' ')
-    name = ' '.join(name_and_identity_number[:len(name_and_identity_number) - 1])
-    identity_number = name_and_identity_number[len(name_and_identity_number) - 1]
-
-    info_table = TerminalTable(
-        name='personal_info',
-        header=['Info'],
-        alignments=['left'],
-        sort_by=None,
-        header_colors=(bg.da_red, fg.white),
-        even_colors=(bg.da_grey, fg.white),
-        odd_colors=(bg.grey, fg.black),
-    )
-
-    info_table.add_all([{
-        'info': name,
-    }, {
-        'info': identity_number,
-    }])
-
-    courses_table = TerminalTable(
-        name='courses',
-        header=['Name', 'Scope', 'Grade', 'Date'],
-        alignments=['left', 'center', 'center', 'center'],
-        sort_by=get_sorting_key(sort_by),
-        header_colors=(bg.da_red, fg.white),
-        even_colors=(bg.da_grey, fg.white),
-        odd_colors=(bg.grey, fg.black),
-    )
-
-    courses_table.add_all(courses)
+    total_scope = sum(list(map(lambda course : scope_from_course(course), courses)))
 
     stats_table = TerminalTable(
         name='stats',
@@ -158,26 +146,47 @@ def main():
         odd_colors=(bg.grey, fg.black),
     )
 
-    extent_sum = sum(list(map(lambda course : scope_from_course(course), courses)))
-    weight_sum = sum(list(map(lambda course : scope_from_course(course) * grade_from_course(course), courses)))
-
     if not ignore_average:
-        average = weight_sum / extent_sum
+        total_weight = sum(list(map(lambda course : scope_from_course(course) * grade_from_course(course), courses)))
+        average = total_weight / total_scope
         average = round(average, 5)
+
         stats_table.add_one({
             'statistic': 'Average grade',
             'value': str(average),
         })
 
     if verbose:
-        verbose_stats = [{
+        info = get_info(lines, is_swedish)
+        info_table = TerminalTable(
+            name='personal_info',
+            header=['Info'],
+            alignments=['left'],
+            sort_by=None,
+            header_colors=(bg.blue, fg.white),
+            even_colors=(bg.da_grey, fg.white),
+            odd_colors=(bg.grey, fg.black),
+        )
+        info_table.add_all(info)
+
+        courses_table = TerminalTable(
+            name='courses',
+            header=['Name', 'Scope', 'Grade', 'Date'],
+            alignments=['left', 'center', 'center', 'center'],
+            sort_by=get_sorting_key(sort_by),
+            header_colors=(bg.da_red, fg.white),
+            even_colors=(bg.da_grey, fg.white),
+            odd_colors=(bg.grey, fg.black),
+        )
+        courses_table.add_all(courses)
+
+        stats_table.add_all([{
             'statistic': 'Number of courses',
             'value': str(len(courses)),
         }, {
             'statistic': 'Total scope',
-            'value': str(extent_sum) + 'hp',
-        }]
-        stats_table.add_all(verbose_stats)
+            'value': str(total_scope) + 'hp',
+        }])
 
         print(info_table)
         print(courses_table)
