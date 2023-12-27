@@ -60,6 +60,12 @@ def get_course_indices(lines, is_swedish):
     else:
         return (lines.index('Code Name Scope Grade Date Note') + 1, lines.index('Summation'))
 
+def get_name_index(lines, is_swedish):
+    if is_swedish:
+        return lines.index('Namn Personnummer') + 1
+    else:
+        return lines.index('Name Personal identity number') + 1
+ 
 def get_sorting_key(sort_by):
     match sort_by:
         case 'name':
@@ -103,10 +109,32 @@ def main():
     ignore_average = args.ignoreaverage
 
     lines = get_lines(file_name)
-    is_swedish = lines[0].startswith('Resultatintyg')
+    is_swedish = lines[0] == 'ResultatintygUtskriftsdatum'
+
     courses_start_index, courses_end_index = get_course_indices(lines, is_swedish)
     course_lines = lines[courses_start_index:courses_end_index]
     courses = get_courses(course_lines, include_ug)
+
+    name_index = get_name_index(lines, is_swedish)
+    name_and_identity_number = lines[name_index].split(' ')
+    name = ' '.join(name_and_identity_number[:len(name_and_identity_number) - 1])
+    identity_number = name_and_identity_number[len(name_and_identity_number) - 1]
+
+    info_table = TerminalTable(
+        name='personal_info',
+        header=['Info'],
+        alignments=['left'],
+        sort_by=None,
+        header_colors=(bg.da_red, fg.white),
+        even_colors=(bg.da_grey, fg.white),
+        odd_colors=(bg.grey, fg.black),
+    )
+
+    info_table.add_all([{
+        'info': name,
+    }, {
+        'info': identity_number,
+    }])
 
     courses_table = TerminalTable(
         name='courses',
@@ -130,7 +158,6 @@ def main():
         odd_colors=(bg.grey, fg.black),
     )
 
-
     extent_sum = sum(list(map(lambda course : scope_from_course(course), courses)))
     weight_sum = sum(list(map(lambda course : scope_from_course(course) * grade_from_course(course), courses)))
 
@@ -152,6 +179,7 @@ def main():
         }]
         stats_table.add_all(verbose_stats)
 
+        print(info_table)
         print(courses_table)
 
     print(stats_table)
