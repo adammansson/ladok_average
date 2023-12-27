@@ -18,7 +18,7 @@ git clone git@github.com:adammansson/ladok-average.git
 - Press "Create" again
 - Download the transcript by pressing the first entry under "Created transcripts and certificates", it is called "Intyg.pdf" by default
 - Place "Intyg.pdf" in the same directory as "script.py" or use the "--filename" flag when running the script
-- Use ```bash python script.py -h``` for further help
+- Use ```python script.py -h``` for further help
 
 ## Usage examples
 ```bash
