@@ -68,8 +68,7 @@ def number_from_grade(grade):
         case _:
             raise ValueError
 
-def get_course_indices(lines):
-    is_swedish = lines[0].startswith('Resultatintyg')
+def get_course_indices(lines, is_swedish):
     if is_swedish:
         return (lines.index('Benämning Omfattning Betyg Datum Not') + 1, lines.index('Summering'))
     else:
@@ -167,7 +166,8 @@ def main():
     ignore_average = args.ignoreaverage
 
     lines = get_lines(file_name)
-    courses_start_index, courses_end_index = get_course_indices(lines)
+    is_swedish = lines[0].startswith('Resultatintyg')
+    courses_start_index, courses_end_index = get_course_indices(lines, is_swedish)
     courses = lines[courses_start_index:courses_end_index]
     courses = processed_courses(courses, sort_by, include_ug)
 
