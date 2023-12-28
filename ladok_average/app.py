@@ -2,9 +2,9 @@ from pypdf import PdfReader
 from argparse import ArgumentParser
 from pathlib import Path
 
-from ladok_average.courses import create_courses_table, get_courses, write_courses
-from ladok_average.info import create_info_table, get_info
-from ladok_average.stats import create_stats_table, get_stats
+import ladok_average.courses as courses
+import ladok_average.info as info
+import ladok_average.stats as stats
 
 def load_lines(input_name):
     reader = PdfReader(input_name)
@@ -37,23 +37,23 @@ def run():
     if input_name.suffix != '.pdf':
         raise ValueError
 
-    lines = load_lines(input_name)
-    is_swedish = lines[0] == 'ResultatintygUtskriftsdatum'
+    lines_list = load_lines(input_name)
+    is_swedish = lines_list[0] == 'ResultatintygUtskriftsdatum'
 
-    courses = get_courses(lines, is_swedish, include_ug)
-    courses_table = create_courses_table(sort_by)
-    courses_table.add_all(courses)
+    courses_list = courses.get_courses(lines_list, is_swedish, include_ug)
+    courses_table = courses.create_courses_table(sort_by)
+    courses_table.add_all(courses_list)
 
-    info = get_info(lines, is_swedish)
-    info_table = create_info_table()
-    info_table.add_all(info)
+    info_list = info.get_info(lines_list, is_swedish)
+    info_table = info.create_info_table()
+    info_table.add_all(info_list)
 
-    stats = get_stats(courses, verbose, ignore_average)
-    stats_table = create_stats_table()
-    stats_table.add_all(stats)
+    stats_list = stats.get_stats(courses_list, verbose, ignore_average)
+    stats_table = stats.create_stats_table()
+    stats_table.add_all(stats_list)
 
     if output_name:
-        write_courses(output_name, courses)
+        courses.write(output_name, courses)
 
     if verbose:
         print(info_table)

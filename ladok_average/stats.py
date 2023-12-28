@@ -2,7 +2,7 @@ from sty import fg, bg
 
 from ladok_average.termtable import TerminalTable
 
-def grade_from_course(course):
+def __grade_from_course(course):
     grade = course['grade']
     match grade:
         case 'G':
@@ -14,7 +14,7 @@ def grade_from_course(course):
         case _:
             raise ValueError
 
-def scope_from_course(course):
+def __scope_from_course(course):
     scope = course['scope']
     scope = scope[:len(scope) - 2] # remove "hp"
 
@@ -22,8 +22,8 @@ def scope_from_course(course):
 
 def get_stats(courses, verbose, ignore_average):
     stats = []
-    total_scope = sum(list(map(lambda course : scope_from_course(course), courses)))
-    total_weight = sum(list(map(lambda course : scope_from_course(course) * grade_from_course(course), courses)))
+    total_scope = sum(list(map(lambda course : __scope_from_course(course), courses)))
+    total_weight = sum(list(map(lambda course : __scope_from_course(course) * __grade_from_course(course), courses)))
     average = total_weight / total_scope
     average = round(average, 5)
 

@@ -2,7 +2,7 @@ from sty import fg, bg
 
 from ladok_average.termtable import TerminalTable
 
-def get_name_index(lines, is_swedish):
+def __get_name_index(lines, is_swedish):
     if is_swedish:
         return lines.index('Namn Personnummer') + 1
     else:
@@ -10,7 +10,7 @@ def get_name_index(lines, is_swedish):
  
 def get_info(lines, is_swedish):
     info = []
-    name_index = get_name_index(lines, is_swedish)
+    name_index = __get_name_index(lines, is_swedish)
     name_and_identity_number = lines[name_index].split(' ')
     name = ' '.join(name_and_identity_number[:len(name_and_identity_number) - 1])
     identity_number = name_and_identity_number[len(name_and_identity_number) - 1]
