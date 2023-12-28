@@ -1,10 +1,10 @@
-# ladok-average
+# ladok_average
 Calculate your grade average from Ladok.
 
 ## Installation
 Use git clone to install ladok-average.
 ```bash
-git clone git@github.com:adammansson/ladok-average.git
+git clone git@github.com:adammansson/ladok_average.git
 ```
 
 ## Instructions
@@ -18,18 +18,18 @@ git clone git@github.com:adammansson/ladok-average.git
 - Press "Create" again
 - Download the transcript by pressing the first entry under "Created transcripts and certificates", it is called "Intyg.pdf" by default
 - Place "Intyg.pdf" in the same directory as "script.py" or use the "--filename" flag when running the script
-- Use ```python script.py -h``` for further help
+- Use ```python -m ladok_average -h``` for further help
 
 ## Usage examples
 ```bash
-python script.py
+python -m ladok_average
 ```
 ```bash
-python script.py another_filename.pdf -v
+python -m ladok_average another_filename.pdf -v
 ```
 ```bash
-python script.py --includeug --ignoreaverage
+python -m ladok_average --includeug --ignoreaverage
 ```
 ```bash
-python script.py -o=Uttyg.txt
+python -m ladok_average -o=Uttyg.txt
 ```
