@@ -2,7 +2,7 @@
 Calculate your grade average from Ladok.
 
 ## Installation
-Use git clone to install ladok-average.
+Use git clone to install ladok_average.
 ```bash
 git clone git@github.com:adammansson/ladok_average.git
 ```

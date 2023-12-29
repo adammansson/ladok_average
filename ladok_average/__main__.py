@@ -1,3 +1,3 @@
-from ladok_average import app
+from ladok_average import termapp
 
-app.run()
+termapp.run()

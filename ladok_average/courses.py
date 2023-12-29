@@ -76,8 +76,3 @@ def create_courses_table(sort_by):
         even_colors=(bg.da_grey, fg.white),
         odd_colors=(bg.grey, fg.black),
     )
-
-def write_courses(output_name, courses):
-    courses = json.dumps(courses, indent=4)
-    with open(output_name, 'w') as outfile:
-        outfile.write(courses)
